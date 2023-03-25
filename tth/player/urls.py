@@ -1,6 +1,7 @@
 from django.urls import path
-from player.views import index
+from player.views import IndexView, PlayerView
 
 urlpatterns = [
-    path('', index)
+    path('', IndexView.as_view()),
+    path('<int:pk>/', PlayerView.as_view(), name="player")
 ]
