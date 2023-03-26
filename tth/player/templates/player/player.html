@@ -52,9 +52,14 @@
 	} catch (e){
 		console.log('invalid json');
 	}	
+	var layout = {
+		yaxis: {
+			rangemode: "tozero"
+		}
+	}
 	Plotly.newPlot( TESTER, [{
 	x: data['x'],
 	y: data['y'],
-	margin: { t: 0 } }] );
+	margin: { t: 0 } }], layout);
 </script>
 {% endblock %}
