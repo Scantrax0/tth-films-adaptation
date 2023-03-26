@@ -12,7 +12,7 @@ def video_entry_pre_save_handler(*args, **kwargs):
     res = vp.analyze_brightness()
     print(res)
 
-    if res:
+    if res.get('success'):
         instance.status = VideoEntry.SUCCESSFUL
         instance.brightness_data = res
     else:
