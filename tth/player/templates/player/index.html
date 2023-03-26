@@ -6,7 +6,7 @@
 			{% if video_list %}
 				<ul class="list-group">
 				{% for video in video_list %}
-					<li class="list-group-item"><a href="{% url 'player' video.pk %}">{{ video.pk }}</a></li>
+					<li class="list-group-item"><a href="{% url 'player' video.pk %}">[{{ video.pk }}] {{ video.url }}</a></li>
 				{% endfor %}
 				</ul>
 			{% else %}

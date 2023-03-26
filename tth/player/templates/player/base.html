@@ -15,7 +15,7 @@
 		<header id="header" class="d-flex align-items-center">
 			<div class="container d-flex justify-content-between">		
 				<div class="logo">
-					<h1 class="text-light"><a href="index.html">Digital Ninjas</a></h1>
+					<h1 class="text-light"><a href="{{ request.scheme }}://{{ request.get_host }}{% url 'index' %}">Digital Ninjas</a></h1>
 				</div>		
 			</div>
 		</header>        

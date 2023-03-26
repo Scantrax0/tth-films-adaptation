@@ -1,9 +1,36 @@
 {% extends "player/base.html" %}
 {% block content %}
+<link href="https://vjs.zencdn.net/8.0.4/video-js.css" rel="stylesheet" />
 <div class="row">
 	<div class="panel panel-default">
 		<div class="panel-body">
-			<p>Player</p>
+			<video
+				id="vid1"
+				class="video-js vjs-default-skin"
+				controls
+				autoplay
+				data-setup='{
+					"fluid": true,
+					"techOrder": ["youtube"],
+					"sources": [{ "type": "video/youtube", "src": "{{ videoentry.url }}"}],
+					"youtube": { "modestbranding": 1, "ytControls": 0 },
+					"controlBar": {
+						"playToggle": true,
+						"captionsButton": false,
+						"chaptersButton": false,            
+						"subtitlesButton": false,
+						"remainingTimeDisplay": false,
+						"progressControl": {
+						  "seekBar": true
+						},
+						"fullscreenToggle": false,
+						"playbackRateMenuButton": false
+					}
+				}'
+			>
+			</video>
+			<script src="https://vjs.zencdn.net/8.0.4/video.min.js"></script>
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-youtube/3.0.0/Youtube.js"></script>
 		</div>
 	</div>
 </div>
@@ -25,9 +52,14 @@
 	} catch (e){
 		console.log('invalid json');
 	}	
+	var layout = {
+		yaxis: {
+			rangemode: "tozero"
+		}
+	}
 	Plotly.newPlot( TESTER, [{
 	x: data['x'],
 	y: data['y'],
-	margin: { t: 0 } }] );
+	margin: { t: 0 } }], layout);
 </script>
 {% endblock %}
