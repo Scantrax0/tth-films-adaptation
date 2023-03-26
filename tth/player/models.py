@@ -3,18 +3,18 @@ from django.db import models
 
 class VideoEntry(models.Model):
     LOADED = 'L'
-    PROCESSING = 'P'
-    FINISHED = 'F'
+    SUCCESSFUL = 'S'
+    FAILED = 'F'
     STATUSES = [
         (LOADED, 'Загружено'),
-        (PROCESSING, 'Обработка'),
-        (FINISHED, 'Обработано'),
+        (SUCCESSFUL, 'Обработано'),
+        (FAILED, 'Ошибка'),
     ]
 
     url = models.URLField('URL', unique=True, db_index=True)
     status = models.CharField('Статус', max_length=40, choices=STATUSES,
                               default=LOADED)
-    brightness_data = models.TextField('Данные яркости')
+    brightness_data = models.TextField('Данные яркости', blank=True, null=True)
 
     class Meta:
         verbose_name = 'Видео'
