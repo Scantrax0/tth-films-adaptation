@@ -1,5 +1,12 @@
 from django.shortcuts import render
+from django.views import generic
+from player.models import VideoEntry
 
-# Create your views here.
-def index(request):
-    return render(request, 'player/index.html')
+class IndexView(generic.ListView):
+    template_name = 'player/index.html'
+    context_object_name = 'video_list'
+    model = VideoEntry
+
+class PlayerView(generic.DetailView):
+    model = VideoEntry
+    template_name = 'player/player.html'
