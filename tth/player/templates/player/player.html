@@ -47,6 +47,7 @@
 	try {
 		var string = '{{ videoentry.brightness_data }}';
 		var n = string.replaceAll('&quot;', '"');
+		var n = n.replaceAll('&#x27;', '"');
 		console.log(n);
 		var data = JSON.parse(n);	
 	} catch (e){

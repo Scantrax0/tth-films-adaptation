@@ -2,4 +2,6 @@ from django.contrib import admin
 
 from player.models import VideoEntry
 
-admin.site.register(VideoEntry)
+@admin.register(VideoEntry)
+class VideoEntryAdmin(admin.ModelAdmin):
+    fields = ['url']

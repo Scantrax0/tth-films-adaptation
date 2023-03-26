@@ -14,7 +14,7 @@ class VideoEntry(models.Model):
     url = models.URLField('URL', unique=True, db_index=True)
     status = models.CharField('Статус', max_length=40, choices=STATUSES,
                               default=LOADED)
-    brightness_data = models.TextField('Данные яркости', blank=True, null=True)
+    brightness_data = models.TextField('Данные яркости', blank=True, null=True, default="null")
 
     class Meta:
         verbose_name = 'Видео'
