@@ -9,8 +9,24 @@
 				class="video-js vjs-default-skin"
 				controls
 				autoplay
-				width="640" height="264"
-				data-setup='{ "techOrder": ["youtube"], "sources": [{ "type": "video/youtube", "src": "{{ videoentry.url}}"}] }'
+				data-setup='{
+					"fluid": true,
+					"techOrder": ["youtube"],
+					"sources": [{ "type": "video/youtube", "src": "{{ videoentry.url }}"}],
+					"youtube": { "modestbranding": 1, "ytControls": 0 },
+					"controlBar": {
+						"playToggle": true,
+						"captionsButton": false,
+						"chaptersButton": false,            
+						"subtitlesButton": false,
+						"remainingTimeDisplay": false,
+						"progressControl": {
+						  "seekBar": true
+						},
+						"fullscreenToggle": false,
+						"playbackRateMenuButton": false
+					}
+				}'
 			>
 			</video>
 			<script src="https://vjs.zencdn.net/8.0.4/video.min.js"></script>
