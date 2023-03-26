@@ -19,4 +19,4 @@ def process_video(pk):
     else:
         instance.status = VideoEntry.FAILED
 
-    instance.save(update_fields=['status'])
+    instance.save(update_fields=['status', 'brightness_data'])
