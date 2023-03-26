@@ -21,7 +21,10 @@ class VideoProcessor:
         x = []
         y = []
 
-        stream = CamGear(source=self.youtube_url, stream_mode=True).start()
+        try:
+            stream = CamGear(source=self.youtube_url, stream_mode=True).start()
+        except Exception:
+            return result
         while True:
             frame = stream.read()
             if frame is None:
