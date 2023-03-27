@@ -11,7 +11,8 @@ class FilterController {
 
     removeFilter() {
         if (this.isPlaying) {
-            this.el.classList.remove(this.filterName);
+            var el = document.getElementById(this.videoId);
+            el.classList.remove(this.filterName);
             this.isTimeoutSet = false;
             console.log('filter removed');
         } else {
