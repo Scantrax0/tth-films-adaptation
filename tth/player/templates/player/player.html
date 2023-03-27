@@ -10,7 +10,6 @@
 				id="vid1"
 				class="video-js vjs-default-skin"
 				controls
-				autoplay
 				data-setup='{
 					"fluid": true,
 					"techOrder": ["youtube"],
@@ -82,9 +81,44 @@
 			rangemode: "tozero"
 		}
 	}
-	Plotly.newPlot( TESTER, [{
-	x: data['x'],
-	y: data['y'],
-	margin: { t: 0 } }], layout);
+	var lines = [];
+	lines.push({
+		x: data['x'],
+		y: data['mean'],
+		margin: { t: 0 },
+		name: 'mean',
+		line: {
+			color: 'rgb(70, 70, 70)'
+		}
+	});
+	lines.push({
+		x: data['x'],
+		y: data['red'],
+		margin: { t: 0 },
+		name: 'red',
+		line: {
+			color: 'rgb(255, 51, 51)'
+		}
+	});
+	lines.push({
+		x: data['x'],
+		y: data['green'],
+		margin: { t: 0 },
+		name: 'green',
+		line: {
+			color: 'rgb(51, 255, 51)'
+		}
+	});
+	lines.push({
+		x: data['x'],
+		y: data['blue'],
+		margin: { t: 0 },
+		name: 'blue',
+		line: {
+			color: 'rgb(51, 51, 255)'
+		}
+	});
+
+	Plotly.newPlot( TESTER, lines, layout);
 </script>
 {% endblock %}
