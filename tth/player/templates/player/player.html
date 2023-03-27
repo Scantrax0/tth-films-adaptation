@@ -1,9 +1,11 @@
 {% extends "player/base.html" %}
+{% load static %}
 {% block content %}
+<link rel="stylesheet" href="{% static 'player/video.css' %}">	
 <link href="https://vjs.zencdn.net/8.0.4/video-js.css" rel="stylesheet" />
 <div class="row">
 	<div class="panel panel-default">
-		<div class="panel-body">
+		<div class="panel-body" id="vidwrap">
 			<video
 				id="vid1"
 				class="video-js vjs-default-skin"
@@ -31,6 +33,28 @@
 			</video>
 			<script src="https://vjs.zencdn.net/8.0.4/video.min.js"></script>
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-youtube/3.0.0/Youtube.js"></script>
+			<script src="{% static 'player/filter-controller.js' %}"></script>	
+			<script>
+				function signalRemove(vc) {
+					vc.removeFilter();
+				}	
+				var vc = new FilterController('vid1', 'videofilter1', [[2,5], [7,10]], signalRemove)
+				videojs('vid1').ready(function () {
+					this.on('timeupdate', function () {
+						console.log(this.currentTime());
+						vc.timeUpdate(this.currentTime());
+					});
+					this.on('play', function () {
+						console.log('play');
+						vc.play();
+					});
+					this.on('pause', function () {
+						console.log('pause');
+						vc.pause();
+					});
+				});
+				
+			</script>		
 		</div>
 	</div>
 </div>

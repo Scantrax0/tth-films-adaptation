@@ -1,0 +1,9 @@
+.video-js {
+    transition-property: filter;
+    transition-duration: 0.2s;
+    transition-timing-function: ease;
+}
+
+.videofilter1 {
+    filter: blur(5px) brightness(5%);
+}
