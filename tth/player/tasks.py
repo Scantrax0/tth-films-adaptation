@@ -16,6 +16,7 @@ def process_video(pk):
     if res.get('success'):
         instance.status = VideoEntry.SUCCESSFUL
         instance.brightness_data = json.dumps(res.get('data'))
+        instance.dangerous_interval = json.dumps(res.get('danger_intervals'))
     else:
         instance.status = VideoEntry.FAILED
 
