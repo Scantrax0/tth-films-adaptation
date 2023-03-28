@@ -5,7 +5,7 @@
 }
 
 .videofilter1 {
-    filter: blur(5px) brightness(5%);
+    filter: blur(2px) brightness(10%);
 }
 
 .staticfilter1 {
@@ -21,5 +21,5 @@
 }
 
 .staticfilter4 {
-    filter: grayscale(-100%);
+    filter: grayscale(50%);
 }

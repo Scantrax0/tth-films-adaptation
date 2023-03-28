@@ -16,7 +16,7 @@ class VideoProcessor:
 
     @staticmethod
     def _find_peaks(data, spacing, limit):
-        from libs.findpeaks import findpeaks
+        from processor.libs.findpeaks import findpeaks
         return findpeaks(np.array(data), spacing=spacing, limit=limit)
 
     @staticmethod
