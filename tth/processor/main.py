@@ -22,28 +22,30 @@ class VideoProcessor:
     @staticmethod
     def _find_intervals(mn, peaks, framerate, threshold):
         min_safe_freq = 2
-        window = int(framerate / min_safe_freq) + 1
+        window = int(framerate / min_safe_freq)
+        half_window = int(window / 2) + 1
         intervals = []
+        frames = []
 
         for peak in peaks:
             left_idx, right_idx = peak, peak
             try:
-                sl = mn[peak-window:peak]
+                sl = mn[peak-half_window:peak]
                 lowest_left_val = min(sl)
-                lowest_left_idx = peak - len(sl) + sl.index(lowest_left_val)
+                lowest_left_idx = peak-half_window
             except Exception:
                 sl = mn[:peak]
                 lowest_left_val = min(sl)
-                lowest_left_idx = peak - len(sl) + sl.index(lowest_left_val) + 1
+                lowest_left_idx = 0
 
             try:
-                sl = mn[peak+1:peak+window+1]
+                sl = mn[peak+1:peak+half_window+1]
                 lowest_right_val = min(sl)
-                lowest_right_idx = peak + len(sl) - sl[::-1].index(lowest_right_val)
+                lowest_right_idx = peak+half_window
             except Exception:
                 sl = mn[peak:]
                 lowest_right_val = min(sl)
-                lowest_right_idx = peak + len(sl) - sl[::-1].index(lowest_right_val) - 1
+                lowest_right_idx = len(mn)-1
 
             if abs(mn[peak] - lowest_left_val) >= threshold:
                 left_idx = lowest_left_idx
@@ -57,15 +59,19 @@ class VideoProcessor:
 
                 try:
                     prev_interval = intervals[-1]
+                    prev_frame = frames[-1]
                 except Exception:
                     prev_interval = None
-                if prev_interval:
-                    if prev_interval[1] >= cur_interval_left:
+                    prev_frame = None
+                if prev_interval and prev_frame:
+                    if prev_interval[1] >= cur_interval_left and prev_frame[1] >= left_idx:
                         prev_interval[1] = cur_interval_right
+                        prev_frame[1] = right_idx
                         continue
                 intervals.append([cur_interval_left, cur_interval_right])
+                frames.append([left_idx, right_idx])
 
-        return intervals
+        return intervals, frames
 
     def analyze_brightness(self):
         result = {
@@ -99,7 +105,7 @@ class VideoProcessor:
         # Тут можно играться с spacing и limit
         peaks = self._find_peaks(mean, spacing=2, limit=7)
         # можно играться threshold
-        intervals = self._find_intervals(mean, peaks, framerate, threshold=0.2)
+        intervals, frames = self._find_intervals(mean, peaks, framerate, threshold=0.2)
 
         result['success'] = True
         result['data'] = {
@@ -110,7 +116,10 @@ class VideoProcessor:
             'green': green,
             'blue': blue,
         }
-        result['danger_intervals'] = intervals
+        result['danger_intervals'] = {
+            'intervals': intervals,
+            'frames': frames,
+        }
         stream.stop()
         return result
 
