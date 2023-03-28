@@ -1729,3 +1729,31 @@ section {
   text-align: center;
   font-size: 13px;
 }
+
+.video-processing {
+  color: rgb(163, 163, 163);
+  background-color: rgb(238, 238, 238);
+}
+
+.video-ready {
+  background-color: #d1ffe7;
+}
+
+.video-failed {
+  color: gray;
+  background-color: rgb(255, 206, 216);
+}
+
+.btn-dark {
+  color: rgb(238, 238, 238);
+  background-color: #0f0f0f !important;
+}
+
+.btn-dark:hover, .btn-dark:focus {
+  color: rgb(238, 238, 238);
+}
+
+.btn:active, .btn:focus,  .btn:focus-visible {
+  border: none !important;
+  outline: none !important;
+}

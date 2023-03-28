@@ -6,7 +6,13 @@
 			{% if video_list %}
 				<ul class="list-group">
 				{% for video in video_list %}
-					<li class="list-group-item"><a href="{% url 'player' video.pk %}">[{{ video.pk }}] {{ video.url }}</a></li>
+					{% if video.status == 'S' %}
+						<li class="list-group-item video-ready"><a href="{% url 'player' video.pk %}">Ready [{{ video.pk }}] {{ video.url }}</a></li>
+					{% elif video.status == 'L' %}
+						<li class="list-group-item video-processing">Processing [{{ video.pk }}] {{ video.url }}</li>
+					{% elif video.status == 'F' %}
+						<li class="list-group-item video-failed">Failed [{{ video.pk }}] {{ video.url }}</li>
+					{% endif %}
 				{% endfor %}
 				</ul>
 			{% else %}

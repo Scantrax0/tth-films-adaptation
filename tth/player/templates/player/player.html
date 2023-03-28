@@ -4,8 +4,26 @@
 <link rel="stylesheet" href="{% static 'player/video.css' %}">	
 <link href="https://vjs.zencdn.net/8.0.4/video-js.css" rel="stylesheet" />
 <div class="row">
-	<div class="panel panel-default">
-		<div class="panel-body" id="vidwrap">
+	<div class="panel panel-default">		
+		<div class="panel-body">
+			<div class="btn-group" style="margin-bottom: 20px;">
+				<button class="btn btn-lg" onclick="applyFilter(this)">staticfilter1</button>
+				<button class="btn btn-lg" onclick="applyFilter(this)">staticfilter2</button>
+				<button class="btn btn-lg" onclick="applyFilter(this)">staticfilter3</button>
+				<button class="btn btn-lg" onclick="applyFilter(this)">staticfilter4</button>
+			</div>
+			<script>
+				function applyFilter(btn) {					
+					el = document.getElementById("vid1");
+					if (btn.classList.contains("btn-dark")) {
+						btn.classList.remove("btn-dark");
+						el.classList.remove(btn.textContent);
+					} else {
+						btn.classList.add("btn-dark");
+						el.classList.add(btn.textContent);
+					}
+				}
+			</script>		
 			<video
 				id="vid1"
 				class="video-js vjs-default-skin"
@@ -37,7 +55,7 @@
 				function signalRemove(vc) {
 					vc.removeFilter();
 				}	
-				var vc = new FilterController('vid1', 'videofilter1', [[2,5], [7,10]], signalRemove)
+				var vc = new FilterController('vid1', 'videofilter1', [], signalRemove)
 				videojs('vid1').ready(function () {
 					this.on('timeupdate', function () {
 						console.log(this.currentTime());

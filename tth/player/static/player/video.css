@@ -7,3 +7,19 @@
 .videofilter1 {
     filter: blur(5px) brightness(5%);
 }
+
+.staticfilter1 {
+    filter: hue-rotate(90deg) brightness(200%) contrast(150%);
+}
+
+.staticfilter2 {
+    filter: hue-rotate(180deg);
+}
+
+.staticfilter3 {
+    filter: contrast(200%);
+}
+
+.staticfilter4 {
+    filter: grayscale(-100%);
+}

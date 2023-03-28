@@ -15,6 +15,7 @@ class VideoEntry(models.Model):
     status = models.CharField('Статус', max_length=40, choices=STATUSES,
                               default=LOADED)
     brightness_data = models.TextField('Данные яркости', blank=True, null=True, default="null")
+    dangerous_interval = models.TextField('Опасные кадры', blank=True, null=True, default="null")
 
     class Meta:
         verbose_name = 'Видео'
