@@ -10,7 +10,7 @@ logger = logging.getLogger("django")
 @receiver(post_save, sender=VideoEntry)
 def process_video_start(sender, instance, **kwargs):
     update_fields = kwargs.get('update_fields', None)
-    if update_fields or instance.status == 'S':
+    if update_fields:
         return
     process_video(instance.pk)
     
