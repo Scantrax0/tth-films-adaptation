@@ -27,8 +27,7 @@ class VideoProcessor:
         return findpeaks(np.array(data), spacing=spacing, limit=limit)
 
     def get_intervals(self, mean_brightness, peaks, framerate, threshold):
-        min_safe_video_freq = 2
-        bandwidth = int(framerate / min_safe_video_freq)
+        bandwidth = int(framerate * 2)
         window = int(bandwidth / 2) + 1
 
         intervals = []
@@ -74,9 +73,10 @@ class VideoProcessor:
                     pass
                 else:
                     # тут можно увеличить/уменьшить сглаживание в сек с 0.3
-                    smoothing_time = 0.3
-                    if (prev_interval[1] - left_interval_time <= smoothing_time
-                            or prev_interval[1] >= left_interval_time):
+                    smoothing_time = 0.4
+                    
+                    if (prev_interval[1] >= left_interval_time
+                            or abs(left_interval_time - prev_interval[1]) <= smoothing_time):
                         prev_interval[1] = right_interval_time
                         prev_frame[1] = right_interval_idx
                         continue
@@ -148,8 +148,8 @@ class VideoProcessor:
 
         if result['data']['mean_brightness']:
             # Теоретически тут можно играться с spacing и limit
-            spacing = int(result['data']['framerate'] / 2)
-            limit = 0
+            spacing = int(result['data']['framerate'] * 4)
+            limit = 30
             peaks = self.find_peaks(result['data']['mean_brightness'],
                                     spacing=spacing, limit=limit)
             # Тут можно играться threshold (% от пика) чем меньше - тем чувствительнее алгоритм
@@ -250,23 +250,19 @@ class VideoProcessor:
 
 
 def main():
-    # https://www.youtube.com/watch?v=nWBeexdXEKU
-    # https://www.youtube.com/watch?v=sGBkneu30Aw
+    with open('mean.txt', 'r') as f:
+        s = f.read()
+        mean = list(map(float, s[1:-1].split(', ')))
+        
+    
+    
 
-    url = 'https://www.youtube.com/watch?v=sGBkneu30Aw'
-    v = VideoProcessor('youtube', url)
-    r = v.analyze_brightness()
+    v = VideoProcessor('1', '1')
+    peaks = v.find_peaks(mean, 90, 30)
+    print(peaks)
 
-    # path = '/home/chupss/Dev/tth-films-adaptation/tth/processor/test.mp4'
-    # v = VideoProcessor('drive', path)
-    # r = v.analyze_brightness()
+    print(v.get_intervals(mean, peaks, 30, 0.02))
 
-    # path = '/home/chupss/Dev/tth-films-adaptation/tth/processor/test.mp4'
-    # v = VideoProcessor('drive', path)
-    # r = v.multithread_analyze_brightness()
-
-    with open('out.json', 'w') as f:
-        f.write(json.dumps(r.get('data')))
 
 
 if __name__ == "__main__":
