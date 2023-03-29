@@ -1,133 +1,177 @@
-from vidgear.gears import CamGear
-import math
 import json
+import math
 import numpy as np
+
+import cv2
+from vidgear.gears import CamGear
 
 
 class VideoProcessor:
-    def __init__(self, youtube_url):
-        self.youtube_url = youtube_url
+    def __init__(self, service, path):
+        self.service = service
+        self.path = path
 
-    @staticmethod
-    def _perceived_brightness(frame):
+    def get_perceived_brightness(self, frame):
         r, g, b = frame.mean(axis=(0, 1))
-        mn = math.sqrt(0.241*(r**2) + 0.691*(g**2) + 0.068*(b**2))
-        return map(int, [mn, r, g, b])
+        mean_brightness = math.sqrt(0.241*(r**2) + 0.691*(g**2) + 0.068*(b**2))
+        return mean_brightness, r, g, b
 
-    @staticmethod
-    def _find_peaks(data, spacing, limit):
-        from processor.libs.findpeaks import findpeaks
+    def find_peaks(self, data, spacing, limit):
+        processor.libs.findpeaks import findpeaks
+        # from libs.findpeaks import findpeaks
         return findpeaks(np.array(data), spacing=spacing, limit=limit)
 
-    @staticmethod
-    def _find_intervals(mn, peaks, framerate, threshold):
-        min_safe_freq = 2
-        window = int(framerate / min_safe_freq)
-        half_window = int(window / 2) + 1
+    def get_intervals(self, mean_brightness, peaks, framerate, threshold):
+        min_safe_video_freq = 2
+        bandwidth = int(framerate / min_safe_video_freq)
+        window = int(bandwidth / 2) + 1
+
         intervals = []
         frames = []
-
-        for peak in peaks:
-            left_idx, right_idx = peak, peak
+        for peak_idx in peaks:
+            left_interval_idx, right_interval_idx = peak_idx, peak_idx
             try:
-                sl = mn[peak-half_window:peak]
-                lowest_left_val = min(sl)
-                lowest_left_idx = peak-half_window
+                left_mean_brightness = (
+                    mean_brightness[peak_idx-window:peak_idx]
+                )
+                lowest_left_mean_brightness_val = min(left_mean_brightness)
+                lowest_left_mean_brightness_idx = peak_idx - window
             except Exception:
-                sl = mn[:peak]
-                lowest_left_val = min(sl)
-                lowest_left_idx = 0
-
+                left_mean_brightness = mean_brightness[:peak_idx]
+                lowest_left_mean_brightness_val = min(left_mean_brightness)
+                lowest_left_mean_brightness_idx = 0
             try:
-                sl = mn[peak+1:peak+half_window+1]
-                lowest_right_val = min(sl)
-                lowest_right_idx = peak+half_window
+                right_mean_brightness = (
+                    mean_brightness[peak_idx+1:peak_idx+window+1]
+                )
+                lowest_right_mean_brightness_val = min(right_mean_brightness)
+                lowest_right_mean_brightness_idx = peak_idx + window
             except Exception:
-                sl = mn[peak:]
-                lowest_right_val = min(sl)
-                lowest_right_idx = len(mn)-1
+                right_mean_brightness = mean_brightness[peak_idx:]
+                lowest_right_mean_brightness_val = min(right_mean_brightness)
+                lowest_right_mean_brightness_idx = len(mean_brightness)-1
 
-            if abs(mn[peak] - lowest_left_val) >= threshold:
-                left_idx = lowest_left_idx
+            if (mean_brightness[peak_idx] * (1 - threshold)
+                    >= lowest_left_mean_brightness_val):
+                left_interval_idx = lowest_left_mean_brightness_idx
 
-            if abs(mn[peak] - lowest_right_val) >= threshold:
-                right_idx = lowest_right_idx
+            if (mean_brightness[peak_idx] * (1 - threshold)
+                    >= lowest_right_mean_brightness_val):
+                right_interval_idx = lowest_right_mean_brightness_idx
 
-            if left_idx != right_idx:
-                cur_interval_left = left_idx / framerate
-                cur_interval_right = right_idx / framerate
-
+            if left_interval_idx != right_interval_idx:
+                left_interval_time = left_interval_idx / framerate
+                right_interval_time = right_interval_idx / framerate
                 try:
                     prev_interval = intervals[-1]
                     prev_frame = frames[-1]
                 except Exception:
-                    prev_interval = None
-                    prev_frame = None
-                if prev_interval and prev_frame:
-                    if prev_interval[1] >= cur_interval_left and prev_frame[1] >= left_idx:
-                        prev_interval[1] = cur_interval_right
-                        prev_frame[1] = right_idx
+                    pass
+                else:
+                    # тут можно увеличить/уменьшить сглаживание в сек с 0.3
+                    smoothing_time = 0.3
+                    if (prev_interval[1] - left_interval_time <= smoothing_time
+                            or prev_interval[1] >= left_interval_time):
+                        prev_interval[1] = right_interval_time
+                        prev_frame[1] = right_interval_idx
                         continue
-                intervals.append([cur_interval_left, cur_interval_right])
-                frames.append([left_idx, right_idx])
-
+                intervals.append([left_interval_time, right_interval_time])
+                frames.append([left_interval_idx, right_interval_idx])
         return intervals, frames
 
-    def analyze_brightness(self):
-        result = {
-            'success': False,
-            'data': {}
-        }
-        i = 0
-        x = []
-        mean = []
-        red = []
-        green = []
-        blue = []
+    def get_frame_brightness_data(self, frame, result):
+        mean_brightness, red, green, blue = (
+            self.get_perceived_brightness(frame)
+        )
+        result['data']['x'].append(result['data']['total_frames'])
+        result['data']['mean_brightness'].append(mean_brightness)
+        result['data']['red'].append(red)
+        result['data']['green'].append(green)
+        result['data']['blue'].append(blue)
+        result['data']['total_frames'] += 1
+        return result
 
+    def get_youtube_brightness_data(self, result):
         try:
-            stream = CamGear(source=self.youtube_url, stream_mode=True).start()
-            framerate = stream.framerate
+            stream = CamGear(source=self.path, stream_mode=True).start()
         except Exception:
             return result
+
+        result['data']['framerate'] = stream.framerate
         while True:
             frame = stream.read()
             if frame is None:
+                stream.stop()
                 break
-            i += 1
-            mn, r, g, b = self._perceived_brightness(frame)  # list(map(str, ))
-            x.append(i)
-            mean.append(mn)
-            red.append(r)
-            green.append(g)
-            blue.append(b)
 
-        # Тут можно играться с spacing и limit
-        peaks = self._find_peaks(mean, spacing=2, limit=7)
-        # можно играться threshold
-        intervals, frames = self._find_intervals(mean, peaks, framerate, threshold=0.2)
+            result = self.get_frame_brightness_data(frame, result)
+        return result
 
-        result['success'] = True
+    def get_drive_brightness_data(self, result):
+        try:
+            cap = cv2.VideoCapture(self.path)
+        except Exception:
+            return result
+
+        result['data']['framerate'] = cap.get(cv2.CAP_PROP_FPS)
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                cap.release()
+                break
+
+            result = self.get_frame_brightness_data(frame, result)
+        return result
+
+    def analyze_brightness(self):
+        result = {}
+        result['success'] = False
         result['data'] = {
-            'total_frames': i,
-            'x': x,
-            'mean': mean,
-            'red': red,
-            'green': green,
-            'blue': blue,
+            'x': [],
+            'mean_brightness': [],
+            'red': [],
+            'green': [],
+            'blue': [],
+            'framerate': 0,
+            'total_frames': 0,
         }
-        result['danger_intervals'] = {
-            'intervals': intervals,
-            'frames': frames,
-        }
-        stream.stop()
+
+        if self.service == 'drive':
+            result = self.get_drive_brightness_data(result)
+        if self.service == 'youtube':
+            result = self.get_youtube_brightness_data(result)
+
+        if result['data']['mean_brightness']:
+            spacing = int(result['data']['framerate'] / 2)
+            limit = 0
+            peaks = self.find_peaks(result['data']['mean_brightness'],
+                                    spacing=spacing, limit=limit)
+            # Тут можно играться threshold (% от пика)
+            threshold = 0.3
+            intervals, frames = self.get_intervals(
+                result['data']['mean_brightness'], peaks,
+                result['data']['framerate'], threshold=threshold
+            )
+            result['danger_intervals'] = {
+                'peaks': peaks,
+                'intervals': intervals,
+                'frames': frames,
+            }
+            result['success'] = True
         return result
 
 
 def main():
+    # https://www.youtube.com/watch?v=nWBeexdXEKU
+    # https://www.youtube.com/watch?v=sGBkneu30Aw
+
     url = 'https://www.youtube.com/watch?v=nWBeexdXEKU'
-    v = VideoProcessor(url)
+    v = VideoProcessor('youtube', url)
     r = v.analyze_brightness()
+
+    # path = '/home/chupss/Dev/tth-films-adaptation/tth/processor/test.mp4'
+    # v = VideoProcessor('drive', path)
+    # r = v.analyze_brightness()
 
     with open('out.json', 'w') as f:
         f.write(json.dumps(r.get('data')))
