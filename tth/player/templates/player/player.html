@@ -54,8 +54,17 @@
 			<script>
 				function signalRemove(vc) {
 					vc.removeFilter();
-				}	
-				var vc = new FilterController('vid1', 'videofilter1', {{ videoentry.dangerous_interval }}, signalRemove)
+				}
+				try {
+					var string = '{{ videoentry.dangerous_interval }}';
+					var n = string.replaceAll('&quot;', '"');
+					var n = n.replaceAll('&#x27;', '"');
+					console.log(n);
+					intervals = JSON.parse(n);	
+				} catch (e){
+					console.log('invalid json');
+				}
+				var vc = new FilterController('vid1', 'videofilter1', intervals['intervals'], signalRemove)
 				videojs('vid1').ready(function () {
 					this.on('timeupdate', function () {
 						console.log(this.currentTime());
@@ -94,15 +103,38 @@
 	} catch (e){
 		console.log('invalid json');
 	}	
+
 	var layout = {
 		yaxis: {
 			rangemode: "tozero"
-		}
+		},
+		shapes: []
 	}
+
+	intervals['frames'].forEach(element => {
+		var start = element[0];
+		var end = element[1];
+		var shape = {
+			type: 'rect',            
+            xref: 'x',            
+            yref: 'paper',
+            x0: start,
+            y0: 0,
+            x1: end,
+            y1: 1,
+            fillcolor: 'red',
+            opacity: 0.2,
+            line: {
+                width: 0
+            }
+		};
+		layout['shapes'].push(shape);
+	})
+	
 	var lines = [];
 	lines.push({
 		x: data['x'],
-		y: data['mean'],
+		y: data['mean_brightness'],
 		margin: { t: 0 },
 		name: 'mean',
 		line: {

@@ -17,7 +17,7 @@ class VideoProcessor:
         return mean_brightness, r, g, b
 
     def find_peaks(self, data, spacing, limit):
-        processor.libs.findpeaks import findpeaks
+        from processor.libs.findpeaks import findpeaks
         # from libs.findpeaks import findpeaks
         return findpeaks(np.array(data), spacing=spacing, limit=limit)
 
@@ -153,9 +153,9 @@ class VideoProcessor:
                 result['data']['framerate'], threshold=threshold
             )
             result['danger_intervals'] = {
-                'peaks': peaks,
-                'intervals': intervals,
-                'frames': frames,
+                'peaks': list(map(int, peaks.tolist())),
+                'intervals': list(map(lambda x: [float(x[0]), float(x[1])], intervals)),
+                'frames': list(map(lambda x: [int(x[0]), int(x[1])], frames)),
             }
             result['success'] = True
         return result
