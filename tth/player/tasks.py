@@ -10,7 +10,7 @@ def process_video(pk):
     print("starting task")
     instance = VideoEntry.objects.get(pk=pk)
 
-    vp = VideoProcessor(instance.url)
+    vp = VideoProcessor('youtube', instance.url)
     res = vp.analyze_brightness()
     print(res)
     if res.get('success'):
