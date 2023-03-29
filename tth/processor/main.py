@@ -1,9 +1,14 @@
+import itertools
 import json
 import math
+import multiprocessing as mp
 import numpy as np
+from pathlib import Path
 
-import cv2
+import cv2 as cv
 from vidgear.gears import CamGear
+
+BASE_DIR = Path(__file__).resolve().parent
 
 
 class VideoProcessor:
@@ -109,11 +114,11 @@ class VideoProcessor:
 
     def get_drive_brightness_data(self, result):
         try:
-            cap = cv2.VideoCapture(self.path)
+            cap = cv.VideoCapture(self.path)
         except Exception:
             return result
 
-        result['data']['framerate'] = cap.get(cv2.CAP_PROP_FPS)
+        result['data']['framerate'] = cap.get(cv.CAP_PROP_FPS)
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
@@ -142,6 +147,7 @@ class VideoProcessor:
             result = self.get_youtube_brightness_data(result)
 
         if result['data']['mean_brightness']:
+            # Теоретически тут можно играться с spacing и limit
             spacing = int(result['data']['framerate'] / 2)
             limit = 0
             peaks = self.find_peaks(result['data']['mean_brightness'],
@@ -160,18 +166,104 @@ class VideoProcessor:
             result['success'] = True
         return result
 
+    def process_video_multiprocessing(self, iter):
+        group_number, num_processes = iter
+        cap = cv.VideoCapture(self.path)
+        num_of_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
+        frame_jump_unit = num_of_frames // num_processes
+        cap.set(cv.CAP_PROP_POS_FRAMES, frame_jump_unit * group_number)
+        proc_frames = 0
+
+        result = {}
+        result['group'] = group_number
+        result['data'] = {
+            'x': [],
+            'mean_brightness': [],
+            'red': [],
+            'green': [],
+            'blue': [],
+            'framerate': 0,
+            'total_frames': 0,
+        }
+
+        result['data']['framerate'] = cap.get(cv.CAP_PROP_FPS)
+        while proc_frames < frame_jump_unit:
+            ret, frame = cap.read()
+            if not ret:
+                cap.release()
+                break
+
+            result = self.get_frame_brightness_data(frame, result)
+            proc_frames += 1
+        return result
+
+    def multithread_analyze_brightness(self):
+        num_processes = mp.cpu_count()
+        pool = mp.Pool(num_processes)
+        results = pool.map(
+            self.process_video_multiprocessing,
+            zip(range(num_processes), itertools.repeat(num_processes))
+        )
+
+        result = {}
+        result['success'] = False
+        result['data'] = {
+            'x': [],
+            'mean_brightness': [],
+            'red': [],
+            'green': [],
+            'blue': [],
+            'framerate': 0,
+            'total_frames': 0,
+        }
+
+        for mult_result in results:
+            result['data']['mean_brightness'] += (
+                mult_result['data']['mean_brightness']
+            )
+            result['data']['red'] += mult_result['data']['red']
+            result['data']['green'] += mult_result['data']['green']
+            result['data']['blue'] += mult_result['data']['blue']
+            result['data']['framerate'] = mult_result['data']['framerate']
+            result['data']['total_frames'] += (
+                mult_result['data']['total_frames']
+            )
+        result['data']['x'] = list(range(result['data']['total_frames']))
+
+        if result['data']['mean_brightness']:
+            spacing = int(result['data']['framerate'] / 2)
+            limit = 0
+            peaks = self.find_peaks(result['data']['mean_brightness'],
+                                    spacing=spacing, limit=limit)
+            threshold = 0.3
+            intervals, frames = self.get_intervals(
+                result['data']['mean_brightness'], peaks,
+                result['data']['framerate'], threshold=threshold
+            )
+            result['danger_intervals'] = {
+                'peaks': peaks,
+                'intervals': intervals,
+                'frames': frames,
+            }
+            result['success'] = True
+        return result
+
 
 def main():
     # https://www.youtube.com/watch?v=nWBeexdXEKU
     # https://www.youtube.com/watch?v=sGBkneu30Aw
 
-    url = 'https://www.youtube.com/watch?v=nWBeexdXEKU'
+    url = 'https://www.youtube.com/watch?v=sGBkneu30Aw'
     v = VideoProcessor('youtube', url)
     r = v.analyze_brightness()
 
     # path = '/home/chupss/Dev/tth-films-adaptation/tth/processor/test.mp4'
     # v = VideoProcessor('drive', path)
     # r = v.analyze_brightness()
+
+    # path = '/home/chupss/Dev/tth-films-adaptation/tth/processor/test.mp4'
+    # v = VideoProcessor('drive', path)
+    # r = v.multithread_analyze_brightness()
 
     with open('out.json', 'w') as f:
         f.write(json.dumps(r.get('data')))
