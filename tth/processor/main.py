@@ -153,7 +153,7 @@ class VideoProcessor:
             peaks = self.find_peaks(result['data']['mean_brightness'],
                                     spacing=spacing, limit=limit)
             # Тут можно играться threshold (% от пика) чем меньше - тем чувствительнее алгоритм
-            threshold = 0.6
+            threshold = 0.5
             intervals, frames = self.get_intervals(
                 result['data']['mean_brightness'], peaks,
                 result['data']['framerate'], threshold=threshold
