@@ -1757,3 +1757,13 @@ section {
   border: none !important;
   outline: none !important;
 }
+
+#btn-admin {
+  background-color: #525252;
+  color: rgb(238, 238, 238);
+}
+
+#btn-admin:hover {
+  background-color: #444444;
+  color: rgb(197, 197, 197);
+}

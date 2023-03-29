@@ -13,11 +13,15 @@
 	</head>
 	<body>
 		<header id="header" class="d-flex align-items-center">
+			<div class="col-lg-2 pull-right" style="margin-top: 10px;">
+				<a class="btn" id="btn-admin" href="{{ request.scheme }}://{{ request.get_host }}{% url 'index' %}/admin">Admin panel</a>
+			</div>
 			<div class="container d-flex justify-content-between">		
 				<div class="logo">
 					<h1 class="text-light"><a href="{{ request.scheme }}://{{ request.get_host }}{% url 'index' %}">Digital Ninjas</a></h1>
 				</div>		
 			</div>
+			
 		</header>        
 		<div class="container">
             {% block content %}

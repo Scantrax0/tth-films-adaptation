@@ -23,7 +23,7 @@ class FilterController {
 
     timeUpdate(time) {
         this.dangerIntervals.forEach(element => {
-            if (!this.isTimeoutSet && element[0] < time + 0.5 && element[1] > time) {   
+            if (!this.isTimeoutSet && element[0] < time + 0.3 && element[1] > time) {   
                 var el = document.getElementById(this.videoId); 
                 el.classList.add(this.filterName);
                 this.isTimeoutSet = true;
